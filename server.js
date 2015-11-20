@@ -63,7 +63,7 @@ app.get('/register', function (req, res) {
 
 app.post('/register', function (req, res) {
     request.post({
-        url: apiUrl(req) + '/users',
+        url: apiUrl(req) + '/users/register',
         form: req.body,
         json: true
     }, function (error, response, body) {
@@ -115,16 +115,18 @@ app.get('/', function (req, res) {
 /* API ROUTES
 ---------------------------------*/
 // use JWT auth to secure the api
-app.use('/api', expressJwt({ secret: secret }).unless({ path: ['/api/authenticate'] }));
+app.use('/api', expressJwt({ secret: secret }).unless({ path: ['/api/authenticate', '/api/users/register'] }));
 
-// authenticate
+// authenticate user
 app.post('/api/authenticate', function (req, res) {
-    var users = db.get('users');
+    var usersDb = db.get('users');
 
-    users.findOne({ username: req.body.username }, function (err, doc) {
-        if (doc && bcrypt.compareSync(req.body.password, doc.hash)) {
+    usersDb.findOne({ username: req.body.username }, function (err, user) {
+        if (err) throw err;
+
+        if (user && bcrypt.compareSync(req.body.password, user.hash)) {
             // authentication successful
-            return res.send({ token: jwt.sign({ username: doc.username }, secret) });
+            return res.send({ token: jwt.sign({ sub: user._id }, secret) });
         }
 
         // authentication failed
@@ -132,31 +134,25 @@ app.post('/api/authenticate', function (req, res) {
     });
 });
 
-// get current user
-app.get('/api/users/current', function (req, res) {
-    var token = req.headers['authorization'].replace('Bearer ', '');
-    var decoded = jwt.decode(token);
+// register user
+app.post('/api/users/register', function (req, res) {
+    var usersDb = db.get('users');
 
-    res.send(decoded.username);
-});
-
-// create user
-app.post('/api/users', function (req, res) {
-    var users = db.get('users');
-
+    // validate then create user
     validateUser().then(createUser);
 
     function validateUser() {
         var deferred = Q.defer();
 
         // validation
-        users.findOne(
+        usersDb.findOne(
             { username: req.body.username },
-            function (err, doc) {
+            function (err, user) {
                 if (err) throw err;
 
-                if (doc) {
-                    return res.status(400).send('Username already exists');
+                if (user) {
+                    // username already exists
+                    return res.status(400).send('Username "' + req.body.username + '" is already taken');
                 } else {
                     deferred.resolve();
                 }
@@ -174,6 +170,89 @@ app.post('/api/users', function (req, res) {
 
         users.insert(
             user,
+            function (err, doc) {
+                if (err) throw err;
+
+                res.sendStatus(200);
+            });
+    }
+});
+
+// get current user
+app.get('/api/users/current', function (req, res) {
+    var userId = req.user.sub;
+    var usersDb = db.get('users');
+
+    usersDb.findById(
+        userId,
+        function (err, user) {
+            if (err) throw err;
+
+            if (user) {
+                // return user (without hashed password)
+                return res.send(_.omit(user, 'hash'));
+            }
+
+            // user not found
+            res.sendStatus(404);
+        });
+});
+
+// update current user
+app.put('/api/users/current', function (req, res) {
+    var userId = req.user.sub;
+    var usersDb = db.get('users');
+
+    // validate then update user
+    validateUser().then(updateUser);
+
+    function validateUser() {
+        var deferred = Q.defer();
+
+        // validation
+        usersDb.findById(
+            userId,
+            function (err, user) {
+                if (err) throw err;
+
+                if (user.username !== req.body.username) {
+                    // username has changed so check if the new username is already taken
+                    usersDb.findOne(
+                        { username: req.body.username },
+                        function (err, user) {
+                            if (err) throw err;
+
+                            if (user) {
+                                // username already exists
+                                return res.status(400).send('Username "' + req.body.username + '" is already taken');
+                            } else {
+                                deferred.resolve();
+                            }
+                        });
+                } else {
+                    deferred.resolve();
+                }
+            });
+
+        return deferred.promise;
+    }
+
+    function updateUser() {
+        // fields to update
+        var set = {
+            firstName: req.body.firstName,
+            lastName: req.body.lastName,
+            username: req.body.username,
+        };
+
+        // update password if it was entered
+        if (req.body.password) {
+            set.hash = bcrypt.hashSync(req.body.password, 10);
+        }
+
+        usersDb.findAndModify(
+            { _id: userId },
+            { $set: set },
             function (err, doc) {
                 if (err) throw err;
 

@@ -7,20 +7,24 @@
     <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet" />
     <link href="app-content/app.css" rel="stylesheet" />
 </head>
-<body>
+<body class="container">
     <!-- header -->
     <header>
-        <a ui-sref="home">Home</a>
-        <a ui-sref="account">Account</a>
-        <a href="/login" target="_self">Logout</a>
+        <ul class="nav nav-tabs">
+            <li ng-class="{active: activeTab === 'home'}"><a ui-sref="home">Home</a></li>
+            <li ng-class="{active: activeTab === 'account'}"><a ui-sref="account">Account</a></li>
+            <li><a href="/login" target="_self">Logout</a></li>
+        </ul>
+        <div class="flash-message" ng-if="flash">
+            <div class="{{'alert alert-' + flash.type}}" ng-bind="flash.message"></div>
+        </div>
     </header>
 
     <!-- main -->
     <main ui-view></main>
 
     <!-- footer -->
-    <footer>
-    </footer>
+    <footer></footer>
 
     <!-- external scripts -->
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.7/angular.min.js"></script>
@@ -30,6 +34,8 @@
     <!-- application scripts -->
     <script src="app.js"></script>
     <script src="app-services/user.service.js"></script>
+    <script src="app-services/flash.service.js"></script>
     <script src="home/index.controller.js"></script>
+    <script src="account/index.controller.js"></script>
 </body>
 </html>

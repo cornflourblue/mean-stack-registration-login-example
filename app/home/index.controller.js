@@ -8,11 +8,16 @@
     function Controller(UserService) {
         var vm = this;
 
-        vm.username = null;
+        vm.user = null;
 
-        UserService.GetCurrent().then(function (username) {
-            vm.username = username;
-        });
+        initController();
+
+        function initController() {
+            // get current user
+            UserService.GetCurrent().then(function (user) {
+                vm.user = user;
+            });
+        }
     }
 
 })();

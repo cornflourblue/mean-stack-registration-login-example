@@ -3,13 +3,13 @@
 
     angular
         .module('app')
-        .factory('UserService', UserService);
+        .factory('UserService', Service);
 
-    UserService.$inject = ['$http'];
-    function UserService($http) {
+    function Service($http, $q) {
         var service = {};
 
         service.GetCurrent = GetCurrent;
+        service.UpdateCurrent = UpdateCurrent;
         service.GetAll = GetAll;
         service.GetById = GetById;
         service.GetByUsername = GetByUsername;
@@ -20,31 +20,35 @@
         return service;
 
         function GetCurrent() {
-            return $http.get('/api/users/current').then(handleSuccess, handleError('Error getting all users'));
+            return $http.get('/api/users/current').then(handleSuccess, handleError);
+        }
+
+        function UpdateCurrent(user) {
+            return $http.put('/api/users/current', user).then(handleSuccess, handleError);
         }
 
         function GetAll() {
-            return $http.get('/api/users').then(handleSuccess, handleError('Error getting all users'));
+            return $http.get('/api/users').then(handleSuccess, handleError);
         }
 
         function GetById(id) {
-            return $http.get('/api/users/' + id).then(handleSuccess, handleError('Error getting user by id'));
+            return $http.get('/api/users/' + id).then(handleSuccess, handleError);
         }
 
         function GetByUsername(username) {
-            return $http.get('/api/users/' + username).then(handleSuccess, handleError('Error getting user by username'));
+            return $http.get('/api/users/' + username).then(handleSuccess, handleError);
         }
 
         function Create(user) {
-            return $http.post('/api/users', user).then(handleSuccess, handleError('Error creating user'));
+            return $http.post('/api/users', user).then(handleSuccess, handleError);
         }
 
         function Update(user) {
-            return $http.put('/api/users/' + user.id, user).then(handleSuccess, handleError('Error updating user'));
+            return $http.put('/api/users/' + user.id, user).then(handleSuccess, handleError);
         }
 
         function Delete(id) {
-            return $http.delete('/api/users/' + id).then(handleSuccess, handleError('Error deleting user'));
+            return $http.delete('/api/users/' + id).then(handleSuccess, handleError);
         }
 
         // private functions
@@ -53,10 +57,8 @@
             return res.data;
         }
 
-        function handleError(error) {
-            return function () {
-                return { success: false, message: error };
-            };
+        function handleError(res) {
+            return $q.reject(res.data);
         }
     }
 
