@@ -9,7 +9,6 @@
         var service = {};
 
         service.GetCurrent = GetCurrent;
-        service.UpdateCurrent = UpdateCurrent;
         service.GetAll = GetAll;
         service.GetById = GetById;
         service.GetByUsername = GetByUsername;
@@ -23,16 +22,12 @@
             return $http.get('/api/users/current').then(handleSuccess, handleError);
         }
 
-        function UpdateCurrent(user) {
-            return $http.put('/api/users/current', user).then(handleSuccess, handleError);
-        }
-
         function GetAll() {
             return $http.get('/api/users').then(handleSuccess, handleError);
         }
 
-        function GetById(id) {
-            return $http.get('/api/users/' + id).then(handleSuccess, handleError);
+        function GetById(_id) {
+            return $http.get('/api/users/' + _id).then(handleSuccess, handleError);
         }
 
         function GetByUsername(username) {
@@ -44,11 +39,11 @@
         }
 
         function Update(user) {
-            return $http.put('/api/users/' + user.id, user).then(handleSuccess, handleError);
+            return $http.put('/api/users/' + user._id, user).then(handleSuccess, handleError);
         }
 
-        function Delete(id) {
-            return $http.delete('/api/users/' + id).then(handleSuccess, handleError);
+        function Delete(_id) {
+            return $http.delete('/api/users/' + _id).then(handleSuccess, handleError);
         }
 
         // private functions
