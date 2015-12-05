@@ -1,6 +1,5 @@
 ﻿var express = require('express');
 var router = express.Router();
-
 var bcrypt = require('bcryptjs');
 var _ = require('lodash');
 var jwt = require('jsonwebtoken');
@@ -10,10 +9,10 @@ var mongo = require('mongodb');
 var monk = require('monk');
 var db = monk('localhost:27017/switchboard2');
 
-var secret = 'REPLACE THIS WITH YOUR OWN SECRET, IT CAN BE ANY STRING';
+var jwtSecret = 'REPLACE THIS WITH YOUR OWN SECRET, IT CAN BE ANY STRING';
 
 // use JWT auth to secure the api
-router.use('/api', expressJwt({ secret: secret }).unless({ path: ['/api/authenticate', '/api/users/register'] }));
+router.use('/api', expressJwt({ secret: jwtSecret }).unless({ path: ['/api/authenticate', '/api/users/register'] }));
 
 // authenticate user
 router.post('/api/authenticate', function (req, res) {
@@ -24,7 +23,7 @@ router.post('/api/authenticate', function (req, res) {
 
         if (user && bcrypt.compareSync(req.body.password, user.hash)) {
             // authentication successful
-            return res.send({ token: jwt.sign({ sub: user._id }, secret) });
+            return res.send({ token: jwt.sign({ sub: user._id }, jwtSecret) });
         }
 
         // authentication failed
