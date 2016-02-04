@@ -1,19 +1,19 @@
-﻿{
+{
     "name": "mean-stack-registration-login-example",
     "description": "MEAN Stack User Registration and Login Example Application",
     "dependencies": {
-        "express": "^4.13.0",
-        "body-parser": "^1.13.2",
-        "express-session": "^1.11.3",
-        "request": "^2.58.0",
-        "ejs": "^2.3.3",
         "bcryptjs": "^2.1.0",
+        "body-parser": "^1.13.2",
+        "ejs": "^2.3.3",
+        "express": "^4.13.0",
         "express-jwt": "^3.0.1",
+        "express-session": "^1.11.3",
         "jsonwebtoken": "^5.0.2",
         "lodash": "^3.10.0",
-        "mongodb": "^2.0.36",
+        "mongodb": "^1.4.40",
         "monk": "^1.0.1",
         "q": "^1.4.1",
+        "request": "^2.58.0",
         "rootpath": "^0.1.2"
     }
 }
