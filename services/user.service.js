@@ -1,12 +1,11 @@
 ﻿var config = require('config.json');
-var mongo = require('mongodb');
-var monk = require('monk');
-var db = monk(config.connectionString);
-var usersDb = db.get('users');
 var _ = require('lodash');
 var jwt = require('jsonwebtoken');
 var bcrypt = require('bcryptjs');
 var Q = require('q');
+var mongo = require('mongoskin');
+var db = mongo.db(config.connectionString, { native_parser: true });
+db.bind('users');
 
 var service = {};
 
@@ -21,7 +20,7 @@ module.exports = service;
 function authenticate(username, password) {
     var deferred = Q.defer();
 
-    usersDb.findOne({ username: username }, function (err, user) {
+    db.users.findOne({ username: username }, function (err, user) {
         if (err) deferred.reject(err);
 
         if (user && bcrypt.compareSync(password, user.hash)) {
@@ -39,7 +38,7 @@ function authenticate(username, password) {
 function getById(_id) {
     var deferred = Q.defer();
 
-    usersDb.findById(_id, function (err, user) {
+    db.users.findById(_id, function (err, user) {
         if (err) deferred.reject(err);
 
         if (user) {
@@ -58,7 +57,7 @@ function create(userParam) {
     var deferred = Q.defer();
 
     // validation
-    usersDb.findOne(
+    db.users.findOne(
         { username: userParam.username },
         function (err, user) {
             if (err) deferred.reject(err);
@@ -78,7 +77,7 @@ function create(userParam) {
         // add hashed password to user object
         user.hash = bcrypt.hashSync(userParam.password, 10);
 
-        usersDb.insert(
+        db.users.insert(
             user,
             function (err, doc) {
                 if (err) deferred.reject(err);
@@ -94,12 +93,12 @@ function update(_id, userParam) {
     var deferred = Q.defer();
 
     // validation
-    usersDb.findById(_id, function (err, user) {
+    db.users.findById(_id, function (err, user) {
         if (err) deferred.reject(err);
 
         if (user.username !== userParam.username) {
             // username has changed so check if the new username is already taken
-            usersDb.findOne(
+            db.users.findOne(
                 { username: userParam.username },
                 function (err, user) {
                     if (err) deferred.reject(err);
@@ -129,8 +128,8 @@ function update(_id, userParam) {
             set.hash = bcrypt.hashSync(userParam.password, 10);
         }
 
-        usersDb.findAndModify(
-            { _id: _id },
+        db.users.update(
+            { _id: mongo.helper.toObjectID(_id) },
             { $set: set },
             function (err, doc) {
                 if (err) deferred.reject(err);
@@ -145,8 +144,8 @@ function update(_id, userParam) {
 function _delete(_id) {
     var deferred = Q.defer();
 
-    usersDb.remove(
-        { _id: _id },
+    db.users.remove(
+        { _id: mongo.helper.toObjectID(_id) },
         function (err) {
             if (err) deferred.reject(err);
 
