@@ -140,7 +140,7 @@ function update(_id, userParam) {
         var set = {
             firstName: userParam.firstName,
             lastName: userParam.lastName,
-            username: userParam.username
+            username: userParam.username,
         };
 
         // update password if it was entered
