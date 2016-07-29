@@ -24,6 +24,13 @@
                 controller: 'Account.IndexController',
                 controllerAs: 'vm',
                 data: { activeTab: 'account' }
+            })
+            .state('users', {
+                url: '/users',
+                templateUrl: 'users/index.html',
+                controller: 'Users.IndexController',
+                controllerAs: 'vm',
+                data: { activeTab: 'users' }
             });
     }
 
