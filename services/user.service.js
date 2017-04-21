@@ -11,6 +11,7 @@ var service = {};
 
 service.authenticate = authenticate;
 service.getById = getById;
+service.getAll = getAll;
 service.create = create;
 service.update = update;
 service.delete = _delete;
@@ -34,6 +35,25 @@ function authenticate(username, password) {
 
     return deferred.promise;
 }
+
+function getAll() {
+    var deferred = Q.defer();
+
+    db.users.find({}, {fields: {hash: 0}}).toArray(function (err, users) {
+        if (err) deferred.reject(err.name + ': ' + err.message);
+
+        if (users) {
+
+            deferred.resolve(_.omit(users));
+        } else {
+            // user not found
+            deferred.resolve();
+        }
+    });
+
+    return deferred.promise;
+}
+
 
 function getById(_id) {
     var deferred = Q.defer();
